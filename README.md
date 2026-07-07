@@ -36,14 +36,3 @@ The chatbot located in the file `chat.html` requires a Gemini API key:
 
  Running Locally
 Simply navigate to index.html in a browser to get full YouTube embed support for the Music page; or use any static server (such as VS Code Live Server) to serve the folder.
-
- Pages
-| File | Description |
-|---|---|
-| `index.html` | Home page |
-| `anime.html` | Anime browser |
-| `chat.html` | AI chatbot |
-| `quotes.html` | Daily quotes |
-Player for lo-fi music.Lo-fi music player: music.html.
-Private journal (requires login) | `journal.html` |
-| `login.html` | Login / Register |
