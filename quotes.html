@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Introverse — Quotes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+  <!-- NAV -->
+    <nav class="nav">
+    <a href="index.html" class="nav-logo">INTRO<span>VERSE</span></a>
+    <ul class="nav-links">
+      <li><a href="anime.html" class="nav-link ">Anime</a></li>
+      <li><a href="music.html" class="nav-link ">Music</a></li>
+      <li><a href="chat.html" class="nav-link ">Chatbot</a></li>
+      <li><a href="quotes.html" class="nav-link active">Quotes</a></li>
+      <li><a href="journal.html" class="nav-link ">Journal</a></li>
+    </ul>
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <a href="login.html" id="nav-login-btn" style="display:none;font-size:0.78rem;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color 0.2s;">Login</a>
+      <span id="nav-user-email" style="display:none;font-size:0.72rem;color:var(--muted);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+      <button id="nav-logout-btn" onclick="navLogout()" style="display:none;padding:0.35rem 0.85rem;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;transition:all 0.2s;">Sign out</button>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">☀️</button>
+    </div>
+  </nav>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+    const _fbc = { apiKey:"AIzaSyCyHnSYF3D1UXM3Mz5Jb_u7tgmH0vShai0", authDomain:"introverse-5a0ea.firebaseapp.com", projectId:"introverse-5a0ea", storageBucket:"introverse-5a0ea.firebasestorage.app", messagingSenderId:"840538042176", appId:"1:840538042176:web:a70901a7e81888d9b094a5" };
+    const _fapp = initializeApp(_fbc);
+    const _fauth = getAuth(_fapp);
+    onAuthStateChanged(_fauth, (user) => {
+      if (user) {
+        document.getElementById("nav-user-email").style.display = "block";
+        document.getElementById("nav-user-email").textContent = user.email;
+        document.getElementById("nav-logout-btn").style.display = "block";
+        document.getElementById("nav-login-btn").style.display = "none";
+      } else {
+        document.getElementById("nav-login-btn").style.display = "block";
+        document.getElementById("nav-logout-btn").style.display = "none";
+        document.getElementById("nav-user-email").style.display = "none";
+      }
+    });
+    window.navLogout = async function() { await signOut(_fauth); window.location.href = "login.html"; };
+  </script>
+
+  <!-- HERO -->
+  <div class="hero quotes-hero">
+    <div class="hero-accent"></div>
+    <div class="hero-bg-text">QUOTES</div>
+    <div class="hero-content">
+      <h1 class="hero-title">Daily <span>Wisdom</span></h1>
+      <p class="hero-sub">Words that move, inspire, and comfort introverts.</p>
+    </div>
+  </div>
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="view-tabs">
+      <button class="view-tab active" id="exploreTab" onclick="setTab('explore')">Explore</button>
+      <button class="view-tab" id="savedTab" onclick="setTab('saved')">Saved <span class="badge" id="savedBadge" style="display:none">0</span></button>
+    </div>
+    <div class="categories" id="categories"></div>
+  </div>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div id="loader" class="quotes-loader" style="display:none"><div class="quotes-spinner"></div><span>Fetching wisdom…</span></div>
+    <div id="emptyState" class="quotes-empty" style="display:none"><div class="quotes-empty-icon">🔖</div><p>No saved quotes yet.</p><span>Click Save on any quote to save it here.</span></div>
+    <div class="quotes-grid" id="quotesGrid"></div>
+  </main>
+
+  <script>
+    const CATEGORIES = [
+      { key:"random", label:"Random" }, { key:"happiness", label:"Happiness" },
+      { key:"inspirational", label:"Inspire" }, { key:"life", label:"Life" },
+      { key:"love", label:"Love" }, { key:"wisdom", label:"Wisdom" }, { key:"success", label:"Success" },
+    ];
+
+    const FALLBACK_QUOTES = {
+      random: [
+        { q:"The only way to do great work is to love what you do.", a:"Steve Jobs" },
+        { q:"In the middle of every difficulty lies opportunity.", a:"Albert Einstein" },
+        { q:"It does not matter how slowly you go as long as you do not stop.", a:"Confucius" },
+        { q:"Life is what happens when you are busy making other plans.", a:"John Lennon" },
+        { q:"The future belongs to those who believe in the beauty of their dreams.", a:"Eleanor Roosevelt" },
+        { q:"Darkness cannot drive out darkness; only light can do that.", a:"Martin Luther King Jr." },
+        { q:"Spread love everywhere you go.", a:"Mother Teresa" },
+        { q:"Always remember that you are absolutely unique.", a:"Margaret Mead" },
+        { q:"Do not go where the path may lead, go instead where there is no path.", a:"Ralph Waldo Emerson" },
+        { q:"You will face many defeats in life, but never let yourself be defeated.", a:"Maya Angelou" },
+        { q:"The greatest glory in living lies not in never falling, but in rising every time we fall.", a:"Nelson Mandela" },
+        { q:"When you reach the end of your rope, tie a knot in it and hang on.", a:"Franklin D. Roosevelt" },
+      ],
+      happiness: [
+        { q:"Happiness is not something ready-made. It comes from your own actions.", a:"Dalai Lama" },
+        { q:"The most important thing is to enjoy your life — to be happy — it is all that matters.", a:"Audrey Hepburn" },
+        { q:"Happiness depends upon ourselves.", a:"Aristotle" },
+        { q:"Count your age by friends, not years. Count your life by smiles, not tears.", a:"John Lennon" },
+        { q:"For every minute you are angry you lose sixty seconds of happiness.", a:"Ralph Waldo Emerson" },
+        { q:"Happiness is when what you think, what you say, and what you do are in harmony.", a:"Mahatma Gandhi" },
+      ],
+      inspirational: [
+        { q:"Believe you can and you are halfway there.", a:"Theodore Roosevelt" },
+        { q:"The secret of getting ahead is getting started.", a:"Mark Twain" },
+        { q:"It always seems impossible until it is done.", a:"Nelson Mandela" },
+        { q:"Dream big and dare to fail.", a:"Norman Vaughan" },
+        { q:"You miss 100% of the shots you do not take.", a:"Wayne Gretzky" },
+        { q:"Whether you think you can or you think you cannot, you are right.", a:"Henry Ford" },
+      ],
+      life: [
+        { q:"Life is really simple, but we insist on making it complicated.", a:"Confucius" },
+        { q:"The purpose of our lives is to be happy.", a:"Dalai Lama" },
+        { q:"Life is not measured by the number of breaths we take, but by the moments that take our breath away.", a:"Maya Angelou" },
+        { q:"In three words I can sum up everything I have learned about life: it goes on.", a:"Robert Frost" },
+        { q:"To live is the rarest thing in the world. Most people just exist.", a:"Oscar Wilde" },
+        { q:"You only live once, but if you do it right, once is enough.", a:"Mae West" },
+      ],
+      love: [
+        { q:"The best thing to hold onto in life is each other.", a:"Audrey Hepburn" },
+        { q:"Where there is love there is life.", a:"Mahatma Gandhi" },
+        { q:"Being deeply loved by someone gives you strength, while loving someone deeply gives you courage.", a:"Lao Tzu" },
+        { q:"Love yourself first and everything else falls into line.", a:"Lucille Ball" },
+        { q:"Love is composed of a single soul inhabiting two bodies.", a:"Aristotle" },
+        { q:"The giving of love is an education in itself.", a:"Eleanor Roosevelt" },
+      ],
+      wisdom: [
+        { q:"The only true wisdom is in knowing you know nothing.", a:"Socrates" },
+        { q:"Yesterday I was clever, so I wanted to change the world. Today I am wise, so I am changing myself.", a:"Rumi" },
+        { q:"The journey of a thousand miles begins with one step.", a:"Lao Tzu" },
+        { q:"Knowing yourself is the beginning of all wisdom.", a:"Aristotle" },
+        { q:"By three methods we may learn wisdom: by reflection, by experience, and by imitation.", a:"Confucius" },
+        { q:"Wisdom is not a product of schooling but of the lifelong attempt to acquire it.", a:"Albert Einstein" },
+      ],
+      success: [
+        { q:"Success is not final, failure is not fatal: it is the courage to continue that counts.", a:"Winston Churchill" },
+        { q:"The road to success and the road to failure are almost exactly the same.", a:"Colin R. Davis" },
+        { q:"Success usually comes to those who are too busy to be looking for it.", a:"Henry David Thoreau" },
+        { q:"Do not be afraid to give up the good to go for the great.", a:"John D. Rockefeller" },
+        { q:"I find that the harder I work, the more luck I seem to have.", a:"Thomas Jefferson" },
+        { q:"Success is walking from failure to failure with no loss of enthusiasm.", a:"Winston Churchill" },
+      ],
+    };
+
+    let currentCategory = "random";
+    let currentTab = "explore";
+    let currentQuotes = [];
+    let copiedIdx = null;
+
+    // Load saved from localStorage
+    let saved = [];
+    try { saved = JSON.parse(localStorage.getItem("iv_saved_quotes") || "[]"); } catch {}
+
+    // Build category buttons
+    const catEl = document.getElementById("categories");
+    CATEGORIES.forEach(c => {
+      const btn = document.createElement("button");
+      btn.className = "cat-btn" + (c.key==="random"?" active":"");
+      btn.textContent = c.label;
+      btn.id = "cat-"+c.key;
+      btn.onclick = () => {
+        document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentCategory = c.key;
+        fetchQuotes(c.key);
+      };
+      catEl.appendChild(btn);
+    });
+
+    // Refresh button
+    const refreshBtn = document.createElement("button");
+    refreshBtn.className = "refresh-btn";
+    refreshBtn.title = "Refresh";
+    refreshBtn.textContent = "↻";
+    refreshBtn.onclick = () => fetchQuotes(currentCategory);
+    catEl.appendChild(refreshBtn);
+
+    function setTab(tab) {
+      currentTab = tab;
+      document.getElementById("exploreTab").classList.toggle("active", tab==="explore");
+      document.getElementById("savedTab").classList.toggle("active", tab==="saved");
+      document.getElementById("categories").style.display = tab==="explore"?"flex":"none";
+      renderQuotes();
+    }
+
+    function fetchQuotes(cat) {
+      document.getElementById("loader").style.display = "flex";
+      document.getElementById("quotesGrid").innerHTML = "";
+      setTimeout(() => {
+        const pool = FALLBACK_QUOTES[cat] || FALLBACK_QUOTES.random;
+        currentQuotes = [...pool].sort(() => Math.random()-0.5).slice(0,3);
+        document.getElementById("loader").style.display = "none";
+        renderQuotes();
+      }, 300);
+    }
+
+    function renderQuotes() {
+      const grid = document.getElementById("quotesGrid");
+      const emptyState = document.getElementById("emptyState");
+      const display = currentTab==="saved" ? saved : currentQuotes;
+
+      grid.innerHTML = "";
+      emptyState.style.display = "none";
+
+      if(currentTab==="saved" && saved.length===0) {
+        emptyState.style.display = "block";
+        return;
+      }
+
+      display.forEach((quote, i) => {
+        const isSavedQ = saved.some(s => s.q===quote.q);
+        const card = document.createElement("div");
+        card.className = "quote-card";
+        card.style.animationDelay = `${i*0.05}s`;
+        card.innerHTML = `
+          <div class="quote-mark">"</div>
+          <p class="quote-text">${quote.q}</p>
+          <p class="quote-author">— ${quote.a}</p>
+          <div class="quote-actions">
+            <button class="action-btn ${isSavedQ?"saved":""}" onclick="toggleSave(${i})" id="save-btn-${i}">
+              🔖 <span>${isSavedQ?"Saved":"Save"}</span>
+            </button>
+            <button class="action-btn" onclick="copyQuote(${i})" id="copy-btn-${i}">
+              ⎘ <span>Copy</span>
+            </button>
+          </div>`;
+        card._quote = quote;
+        grid.appendChild(card);
+      });
+
+      updateSavedBadge();
+    }
+
+    function toggleSave(idx) {
+      const display = currentTab==="saved" ? saved : currentQuotes;
+      const quote = display[idx];
+      const exists = saved.some(s => s.q===quote.q);
+      if(exists) { saved = saved.filter(s => s.q!==quote.q); }
+      else { saved = [quote, ...saved]; }
+      localStorage.setItem("iv_saved_quotes", JSON.stringify(saved));
+      renderQuotes();
+    }
+
+    function copyQuote(idx) {
+      const display = currentTab==="saved" ? saved : currentQuotes;
+      const quote = display[idx];
+      navigator.clipboard.writeText(`"${quote.q}" — ${quote.a}`);
+      const btn = document.getElementById(`copy-btn-${idx}`);
+      if(btn) {
+        btn.classList.add("copied");
+        btn.innerHTML = `✓ <span>Copied!</span>`;
+        setTimeout(() => { btn.classList.remove("copied"); btn.innerHTML = `⎘ <span>Copy</span>`; }, 2000);
+      }
+    }
+
+    function updateSavedBadge() {
+      const badge = document.getElementById("savedBadge");
+      badge.style.display = saved.length>0 ? "inline" : "none";
+      badge.textContent = saved.length;
+    }
+
+    fetchQuotes("random");
+  </script>
+
+  <script>
+    (function() {
+      const saved = localStorage.getItem('iv_theme');
+      if(saved === 'light') document.body.classList.add('light');
+    })();
+  </script>
+  <script>
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle('light');
+      localStorage.setItem('iv_theme', isLight ? 'light' : 'dark');
+      document.querySelectorAll('.theme-toggle').forEach(btn => {
+        btn.textContent = isLight ? '🌙' : '☀️';
+      });
+    }
+    // Set correct icon on load
+    window.addEventListener('DOMContentLoaded', () => {
+      const isLight = document.body.classList.contains('light');
+      document.querySelectorAll('.theme-toggle').forEach(btn => {
+        btn.textContent = isLight ? '🌙' : '☀️';
+      });
+    });
+  </script>
+
+</body>
+</html>

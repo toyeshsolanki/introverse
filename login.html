@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Introverse — Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    .auth-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      position: relative;
+    }
+
+    /* Orbs */
+    .orb { position: fixed; border-radius: 50%; filter: blur(100px); pointer-events: none; z-index: 0; }
+    .orb-1 { width: 500px; height: 500px; background: rgba(230, 57, 70, 0.08); top: -150px; left: -150px; animation: drift 14s ease-in-out infinite alternate; }
+    .orb-2 { width: 400px; height: 400px; background: rgba(192, 132, 252, 0.07); bottom: -100px; right: -100px; animation: drift 18s ease-in-out infinite alternate-reverse; }
+    @keyframes drift { from { transform: translate(0,0); } to { transform: translate(30px, 30px); } }
+
+    .auth-card {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 420px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .auth-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 3px;
+      color: var(--text);
+      text-decoration: none;
+      display: block;
+      text-align: center;
+      margin-bottom: 0.25rem;
+    }
+    .auth-logo span { color: var(--accent-anime); }
+
+    .auth-tagline {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-bottom: 2rem;
+    }
+
+    /* Tabs */
+    .auth-tabs {
+      display: flex;
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 1.75rem;
+    }
+    .auth-tab {
+      flex: 1;
+      padding: 0.55rem;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 9px;
+      transition: all 0.2s;
+    }
+    .auth-tab.active {
+      background: var(--accent-anime);
+      color: #fff;
+    }
+
+    /* Form */
+    .auth-form { display: flex; flex-direction: column; gap: 1rem; }
+
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .form-input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+    .form-input::placeholder { color: var(--muted); }
+    .form-input:focus { border-color: var(--accent-anime); }
+
+    .btn-auth {
+      width: 100%;
+      padding: 0.85rem;
+      border: none;
+      border-radius: 12px;
+      background: var(--accent-anime);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 0.25rem;
+      letter-spacing: 0.5px;
+    }
+    .btn-auth:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-auth:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* Error / Success */
+    .auth-msg {
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      font-size: 0.83rem;
+      text-align: center;
+      display: none;
+    }
+    .auth-msg.error { background: rgba(230, 57, 70, 0.12); border: 1px solid rgba(230, 57, 70, 0.25); color: #e63946; display: block; }
+    .auth-msg.success { background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.2); color: #4ade80; display: block; }
+
+    .auth-divider {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.75rem;
+      margin: 0.5rem 0;
+      position: relative;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 38%;
+      height: 1px;
+      background: var(--border);
+    }
+    .auth-divider::before { left: 0; }
+    .auth-divider::after { right: 0; }
+
+    .spinner-inline {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 0.4rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Logged in state */
+    .auth-success-state {
+      text-align: center;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+    }
+    .auth-success-state.visible { display: flex; }
+    .success-icon { font-size: 3rem; animation: popIn 0.4s ease; }
+    @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .success-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.75rem; letter-spacing: 2px; }
+    .success-email { font-size: 0.82rem; color: var(--muted); }
+    .btn-go {
+      padding: 0.75rem 2rem;
+      border: none;
+      border-radius: 12px;
+      background: var(--accent-anime);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-go:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-logout {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.55rem 1.25rem;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-logout:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <div class="auth-page">
+    <div class="auth-card">
+
+      <a href="index.html" class="auth-logo">INTRO<span>VERSE</span></a>
+      <p class="auth-tagline">Your quiet corner of the internet 🌙</p>
+
+      <!-- Already logged in state -->
+      <div class="auth-success-state" id="loggedInState">
+        <div class="success-icon">🌸</div>
+        <div>
+          <p class="success-title">Welcome back!</p>
+          <p class="success-email" id="loggedInEmail"></p>
+        </div>
+        <a href="journal.html" class="btn-go">Open My Journal →</a>
+        <a href="index.html" class="btn-go" style="background: var(--surface); color: var(--text); border: 1px solid var(--border);">Go to Home</a>
+        <button class="btn-logout" onclick="handleLogout()">Sign out</button>
+      </div>
+
+      <!-- Auth forms -->
+      <div id="authForms">
+        <!-- Tabs -->
+        <div class="auth-tabs">
+          <button class="auth-tab active" id="loginTab" onclick="switchTab('login')">Login</button>
+          <button class="auth-tab" id="registerTab" onclick="switchTab('register')">Register</button>
+        </div>
+
+        <!-- Message -->
+        <div class="auth-msg" id="authMsg"></div>
+
+        <!-- Login Form -->
+        <div id="loginForm">
+          <div class="auth-form">
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input class="form-input" type="email" id="loginEmail" placeholder="you@example.com"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <input class="form-input" type="password" id="loginPassword" placeholder="••••••••"/>
+            </div>
+            <button class="btn-auth" id="loginBtn" onclick="handleLogin()">Login</button>
+          </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="registerForm" style="display:none;">
+          <div class="auth-form">
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input class="form-input" type="email" id="regEmail" placeholder="you@example.com"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <input class="form-input" type="password" id="regPassword" placeholder="Min 6 characters"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Confirm Password</label>
+              <input class="form-input" type="password" id="regConfirm" placeholder="Repeat password"/>
+            </div>
+            <button class="btn-auth" id="registerBtn" onclick="handleRegister()">Create Account</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCyHnSYF3D1UXM3Mz5Jb_u7tgmH0vShai0",
+      authDomain: "introverse-5a0ea.firebaseapp.com",
+      projectId: "introverse-5a0ea",
+      storageBucket: "introverse-5a0ea.firebasestorage.app",
+      messagingSenderId: "840538042176",
+      appId: "1:840538042176:web:a70901a7e81888d9b094a5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Check if already logged in
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        document.getElementById("authForms").style.display = "none";
+        document.getElementById("loggedInState").classList.add("visible");
+        document.getElementById("loggedInEmail").textContent = user.email;
+      } else {
+        document.getElementById("authForms").style.display = "block";
+        document.getElementById("loggedInState").classList.remove("visible");
+      }
+    });
+
+    // Show message
+    function showMsg(text, type) {
+      const el = document.getElementById("authMsg");
+      el.textContent = text;
+      el.className = "auth-msg " + type;
+    }
+
+    function clearMsg() {
+      const el = document.getElementById("authMsg");
+      el.className = "auth-msg";
+    }
+
+    // Tab switch
+    window.switchTab = function(tab) {
+      clearMsg();
+      document.getElementById("loginForm").style.display = tab === "login" ? "block" : "none";
+      document.getElementById("registerForm").style.display = tab === "register" ? "block" : "none";
+      document.getElementById("loginTab").classList.toggle("active", tab === "login");
+      document.getElementById("registerTab").classList.toggle("active", tab === "register");
+    };
+
+    // Login
+    window.handleLogin = async function() {
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      if (!email || !password) { showMsg("Please fill all fields.", "error"); return; }
+
+      const btn = document.getElementById("loginBtn");
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-inline"></span>Logging in…';
+      clearMsg();
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        showMsg("Login successful! Redirecting…", "success");
+        setTimeout(() => { window.location.href = "journal.html"; }, 1000);
+      } catch (err) {
+        const msgs = {
+          "auth/user-not-found": "No account found with this email.",
+          "auth/wrong-password": "Incorrect password.",
+          "auth/invalid-email": "Invalid email address.",
+          "auth/invalid-credential": "Invalid email or password.",
+          "auth/too-many-requests": "Too many attempts. Try again later."
+        };
+        showMsg(msgs[err.code] || "Login failed. Try again.", "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = "Login";
+      }
+    };
+
+    // Register
+    window.handleRegister = async function() {
+      const email = document.getElementById("regEmail").value.trim();
+      const password = document.getElementById("regPassword").value;
+      const confirm = document.getElementById("regConfirm").value;
+
+      if (!email || !password || !confirm) { showMsg("Please fill all fields.", "error"); return; }
+      if (password !== confirm) { showMsg("Passwords do not match.", "error"); return; }
+      if (password.length < 6) { showMsg("Password must be at least 6 characters.", "error"); return; }
+
+      const btn = document.getElementById("registerBtn");
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-inline"></span>Creating account…';
+      clearMsg();
+
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        showMsg("Account created! Redirecting…", "success");
+        setTimeout(() => { window.location.href = "journal.html"; }, 1000);
+      } catch (err) {
+        const msgs = {
+          "auth/email-already-in-use": "This email is already registered.",
+          "auth/invalid-email": "Invalid email address.",
+          "auth/weak-password": "Password is too weak."
+        };
+        showMsg(msgs[err.code] || "Registration failed. Try again.", "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = "Create Account";
+      }
+    };
+
+    // Logout
+    window.handleLogout = async function() {
+      await signOut(auth);
+    };
+  </script>
+
+  <script>
+    (function() {
+      const saved = localStorage.getItem('iv_theme');
+      if (saved === 'light') document.body.classList.add('light');
+    })();
+  </script>
+
+</body>
+</html>

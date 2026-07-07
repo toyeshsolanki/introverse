@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Introverse — Chatbot</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <!-- NAV -->
+    <nav class="nav">
+    <a href="index.html" class="nav-logo">INTRO<span>VERSE</span></a>
+    <ul class="nav-links">
+      <li><a href="anime.html" class="nav-link ">Anime</a></li>
+      <li><a href="music.html" class="nav-link ">Music</a></li>
+      <li><a href="chat.html" class="nav-link active">Chatbot</a></li>
+      <li><a href="quotes.html" class="nav-link ">Quotes</a></li>
+      <li><a href="journal.html" class="nav-link ">Journal</a></li>
+    </ul>
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <a href="login.html" id="nav-login-btn" style="display:none;font-size:0.78rem;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color 0.2s;">Login</a>
+      <span id="nav-user-email" style="display:none;font-size:0.72rem;color:var(--muted);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+      <button id="nav-logout-btn" onclick="navLogout()" style="display:none;padding:0.35rem 0.85rem;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;transition:all 0.2s;">Sign out</button>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">☀️</button>
+    </div>
+  </nav>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+    const _fbc = { apiKey:"AIzaSyCyHnSYF3D1UXM3Mz5Jb_u7tgmH0vShai0", authDomain:"introverse-5a0ea.firebaseapp.com", projectId:"introverse-5a0ea", storageBucket:"introverse-5a0ea.firebasestorage.app", messagingSenderId:"840538042176", appId:"1:840538042176:web:a70901a7e81888d9b094a5" };
+    const _fapp = initializeApp(_fbc);
+    const _fauth = getAuth(_fapp);
+    onAuthStateChanged(_fauth, (user) => {
+      if (user) {
+        document.getElementById("nav-user-email").style.display = "block";
+        document.getElementById("nav-user-email").textContent = user.email;
+        document.getElementById("nav-logout-btn").style.display = "block";
+        document.getElementById("nav-login-btn").style.display = "none";
+      } else {
+        document.getElementById("nav-login-btn").style.display = "block";
+        document.getElementById("nav-logout-btn").style.display = "none";
+        document.getElementById("nav-user-email").style.display = "none";
+      }
+    });
+    window.navLogout = async function() { await signOut(_fauth); window.location.href = "login.html"; };
+  </script>
+
+  <div class="chat-layout">
+    <!-- SIDEBAR -->
+    <aside class="chat-sidebar">
+      <div class="bot-avatar">
+        <div class="avatar-ring">
+          <div class="avatar-inner">🌸</div>
+        </div>
+        <div class="bot-pulse"></div>
+      </div>
+      <h2 class="bot-name">Hana</h2>
+      <p class="bot-desc">Your cozy AI companion. Always here to listen.</p>
+      <div class="sidebar-divider"></div>
+      <p class="suggestions-label">Quick starters</p>
+      <div class="suggestions" id="suggestions"></div>
+      <div class="sidebar-divider"></div>
+      <button class="clear-btn" onclick="clearChat()">↺ Clear chat</button>
+    </aside>
+
+    <!-- CHAT -->
+    <div class="chat-area">
+      <div class="messages" id="messages"></div>
+      <div class="input-area">
+        <textarea class="chat-input" id="chatInput" placeholder="Say something to Hana…" rows="1"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
+      <p class="chat-hint">Press Enter to send · Shift+Enter for new line</p>
+    </div>
+  </div>
+
+  <script>
+    const API_KEY = "YOUR_GEMINI_API_KEY_HERE"; // ⚠️ Replace with your own Gemini API key. Get one at https://aistudio.google.com/apikey
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${API_KEY}`;
+
+    const SYSTEM_PROMPT = `You are Hana, a warm and friendly AI companion on Introverse — a comfort space for introverts. 
+You love anime, music, and meaningful conversations. 
+You speak in a calm, cozy, and supportive tone. 
+Keep responses concise but thoughtful. 
+If someone seems sad or lonely, be extra gentle and caring.`;
+
+    const SUGGESTIONS = [
+      "Recommend me an anime 🎌",
+      "I'm feeling lonely today",
+      "Tell me something interesting",
+      "What's a good song to listen to?",
+    ];
+
+    let messages = [{ role:"assistant", text:"Hey there 🌙 I'm Hana, your cozy companion on Introverse. Feeling like talking? I'm here — about anime, music, or just life in general. What's on your mind?" }];
+    let loading = false;
+
+    // Build suggestions
+    SUGGESTIONS.forEach(s => {
+      const btn = document.createElement("button");
+      btn.className = "suggestion-btn";
+      btn.textContent = s;
+      btn.onclick = () => sendMessage(s);
+      document.getElementById("suggestions").appendChild(btn);
+    });
+
+    function renderMessages() {
+      const el = document.getElementById("messages");
+      el.innerHTML = "";
+      messages.forEach((msg, i) => {
+        const div = document.createElement("div");
+        div.className = `msg ${msg.role==="user"?"msg-user":"msg-bot"}`;
+        div.style.animationDelay = `${i*0.05}s`;
+        const lines = msg.text.split("\n").join("<br>");
+        div.innerHTML = `
+          ${msg.role==="assistant"?`<div class="msg-avatar">🌸</div>`:""}
+          <div class="msg-bubble">${lines}</div>
+        `;
+        el.appendChild(div);
+      });
+
+      if(loading) {
+        const div = document.createElement("div");
+        div.className = "msg msg-bot";
+        div.innerHTML = `<div class="msg-avatar">🌸</div><div class="msg-bubble typing"><span></span><span></span><span></span></div>`;
+        el.appendChild(div);
+      }
+
+      el.scrollTop = el.scrollHeight;
+    }
+
+    async function sendMessage(text) {
+      const input = document.getElementById("chatInput");
+      const userText = text || input.value.trim();
+      if(!userText || loading) return;
+      input.value = "";
+      messages.push({ role:"user", text:userText });
+      loading = true;
+      setUI(true);
+      renderMessages();
+
+      const history = messages.slice(1, -1).map(m => ({
+        role: m.role==="assistant"?"model":"user",
+        parts: [{ text:m.text }]
+      }));
+
+      const body = {
+        system_instruction: { parts:[{ text:SYSTEM_PROMPT }] },
+        contents: [...history, { role:"user", parts:[{ text:userText }] }],
+        generationConfig: { temperature:0.9, maxOutputTokens:1024 }
+      };
+
+      try {
+        const res = await fetch(API_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) });
+        const data = await res.json();
+        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Hmm, I couldn't think of a reply. Try again?";
+        messages.push({ role:"assistant", text:reply });
+      } catch {
+        messages.push({ role:"assistant", text:"Oops! Something went wrong. Please try again 🌸" });
+      } finally {
+        loading = false;
+        setUI(false);
+        renderMessages();
+        input.focus();
+      }
+    }
+
+    function setUI(disabled) {
+      const input = document.getElementById("chatInput");
+      const btn = document.getElementById("sendBtn");
+      input.disabled = disabled;
+      btn.disabled = disabled;
+      btn.innerHTML = disabled
+        ? `<div class="send-spinner"></div>`
+        : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
+      document.querySelectorAll(".ch-suggestion-btn").forEach(b => b.disabled = disabled);
+    }
+
+    function clearChat() {
+      messages = [{ role:"assistant", text:"Hey there 🌙 I'm Hana, your cozy companion on Introverse. Feeling like talking? I'm here — about anime, music, or just life in general. What's on your mind?" }];
+      renderMessages();
+    }
+
+    document.getElementById("chatInput").addEventListener("keydown", e => {
+      if(e.key==="Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    });
+
+    renderMessages();
+  </script>
+
+  <script>
+    (function() {
+      const saved = localStorage.getItem('iv_theme');
+      if(saved === 'light') document.body.classList.add('light');
+    })();
+  </script>
+  <script>
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle('light');
+      localStorage.setItem('iv_theme', isLight ? 'light' : 'dark');
+      document.querySelectorAll('.theme-toggle').forEach(btn => {
+        btn.textContent = isLight ? '🌙' : '☀️';
+      });
+    }
+    // Set correct icon on load
+    window.addEventListener('DOMContentLoaded', () => {
+      const isLight = document.body.classList.contains('light');
+      document.querySelectorAll('.theme-toggle').forEach(btn => {
+        btn.textContent = isLight ? '🌙' : '☀️';
+      });
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Introverse — Anime</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+    <nav class="nav">
+    <a href="index.html" class="nav-logo">INTRO<span>VERSE</span></a>
+    <ul class="nav-links">
+      <li><a href="anime.html" class="nav-link active">Anime</a></li>
+      <li><a href="music.html" class="nav-link ">Music</a></li>
+      <li><a href="chat.html" class="nav-link ">Chatbot</a></li>
+      <li><a href="quotes.html" class="nav-link ">Quotes</a></li>
+      <li><a href="journal.html" class="nav-link ">Journal</a></li>
+    </ul>
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <a href="login.html" id="nav-login-btn" style="display:none;font-size:0.78rem;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color 0.2s;">Login</a>
+      <span id="nav-user-email" style="display:none;font-size:0.72rem;color:var(--muted);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+      <button id="nav-logout-btn" onclick="navLogout()" style="display:none;padding:0.35rem 0.85rem;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;transition:all 0.2s;">Sign out</button>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">☀️</button>
+    </div>
+  </nav>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+    const _fbc = { apiKey:"AIzaSyCyHnSYF3D1UXM3Mz5Jb_u7tgmH0vShai0", authDomain:"introverse-5a0ea.firebaseapp.com", projectId:"introverse-5a0ea", storageBucket:"introverse-5a0ea.firebasestorage.app", messagingSenderId:"840538042176", appId:"1:840538042176:web:a70901a7e81888d9b094a5" };
+    const _fapp = initializeApp(_fbc);
+    const _fauth = getAuth(_fapp);
+    onAuthStateChanged(_fauth, (user) => {
+      if (user) {
+        document.getElementById("nav-user-email").style.display = "block";
+        document.getElementById("nav-user-email").textContent = user.email;
+        document.getElementById("nav-logout-btn").style.display = "block";
+        document.getElementById("nav-login-btn").style.display = "none";
+      } else {
+        document.getElementById("nav-login-btn").style.display = "block";
+        document.getElementById("nav-logout-btn").style.display = "none";
+        document.getElementById("nav-user-email").style.display = "none";
+      }
+    });
+    window.navLogout = async function() { await signOut(_fauth); window.location.href = "login.html"; };
+  </script>
+
+  <div class="hero anime-hero">
+    <div class="hero-accent"></div>
+    <div class="hero-bg-text">ANIME</div>
+    <div class="hero-content">
+      <h1 class="hero-title">Explore <span>Anime</span></h1>
+      <p class="hero-sub">Discover top-rated series, seasonal hits, and hidden gems.</p>
+    </div>
+  </div>
+
+  <div class="controls">
+    <input class="search-input" type="text" id="searchInput" placeholder="Search anime titles…"/>
+    <button class="btn btn-primary" onclick="handleSearch()">Search</button>
+    <button class="btn btn-ghost" onclick="handleReset()">Reset</button>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <main class="main">
+    <div class="section-label" id="sectionLabel">Top Ranked Anime</div>
+    <div class="anime-grid" id="animeGrid"></div>
+    <div class="pagination" id="pagination"></div>
+  </main>
+
+  <div class="modal-overlay" id="modal" style="display:none;">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="modal-top">
+        <div class="modal-poster">
+          <img id="mImg" src="" alt=""/>
+          <a class="trailer-btn" id="mTrailer" href="#" target="_blank" style="display:none;">▶ Watch Trailer</a>
+        </div>
+        <div class="modal-info">
+          <h2 class="modal-title" id="mTitle"></h2>
+          <p class="modal-title-en" id="mTitleEn"></p>
+          <div class="modal-stats" id="mStats"></div>
+          <div class="modal-genres" id="mGenres"></div>
+          <div class="modal-meta" id="mMeta"></div>
+        </div>
+      </div>
+      <div class="modal-synopsis">
+        <p class="synopsis-label">Synopsis</p>
+        <p id="mSynopsis"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = "https://api.jikan.moe/v4";
+    const MODES = [
+      { key:"top", label:"Top Ranked" },
+      { key:"airing", label:"Airing Now" },
+      { key:"upcoming", label:"Upcoming" },
+      { key:"bypopularity", label:"Popular" },
+      { key:"favorite", label:"Favorites" },
+    ];
+    let mode="top", page=1, searchQuery="";
+    const formatNum = n => { if(!n) return "N/A"; if(n>=1e6) return (n/1e6).toFixed(1)+"M"; if(n>=1e3) return (n/1e3).toFixed(0)+"K"; return n; };
+
+    // Build tabs
+    MODES.forEach(m => {
+      const btn = document.createElement("button");
+      btn.className = "tab" + (m.key==="top" ? " active" : "");
+      btn.textContent = m.label;
+      btn.onclick = () => {
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        btn.classList.add("active");
+        mode=m.key; page=1; searchQuery="";
+        document.getElementById("searchInput").value="";
+        document.getElementById("sectionLabel").textContent = m.label+" Anime";
+        fetchAnime();
+      };
+      document.getElementById("tabs").appendChild(btn);
+    });
+
+    document.getElementById("searchInput").addEventListener("keydown", e => { if(e.key==="Enter") handleSearch(); });
+
+    function handleSearch() {
+      const q = document.getElementById("searchInput").value.trim();
+      if(!q) return;
+      searchQuery=q; page=1;
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      document.getElementById("sectionLabel").textContent = `Results for "${q}"`;
+      fetchAnime();
+    }
+
+    function handleReset() {
+      document.getElementById("searchInput").value="";
+      searchQuery=""; mode="top"; page=1;
+      document.querySelectorAll(".tab").forEach((t,i) => t.classList.toggle("active", i===0));
+      document.getElementById("sectionLabel").textContent="Top Ranked Anime";
+      fetchAnime();
+    }
+
+    async function fetchAnime() {
+      const grid = document.getElementById("animeGrid");
+      grid.innerHTML = `<div class="loader" style="grid-column:1/-1"><div class="spinner"></div><span>Loading anime…</span></div>`;
+      document.getElementById("pagination").innerHTML="";
+      let url = searchQuery ? `${API}/anime?q=${encodeURIComponent(searchQuery)}&page=${page}&limit=20`
+        : mode==="top" ? `${API}/top/anime?page=${page}&limit=20`
+        : `${API}/top/anime?filter=${mode}&page=${page}&limit=20`;
+      try {
+        const res = await fetch(url);
+        if(!res.ok) throw new Error();
+        const json = await res.json();
+        renderGrid(json.data||[]);
+        renderPagination(json.pagination);
+      } catch {
+        grid.innerHTML=`<div class="error-msg" style="grid-column:1/-1"><strong>Oops!</strong> Failed to fetch. Try again shortly.</div>`;
+      }
+    }
+
+    function renderGrid(data) {
+      const grid = document.getElementById("animeGrid");
+      grid.innerHTML="";
+      if(!data.length){ grid.innerHTML=`<div class="empty-msg">No results found.</div>`; return; }
+      data.forEach((anime,i) => {
+        const score = anime.score ? anime.score.toFixed(1) : "N/A";
+        const genre = anime.genres?.[0]?.name||"";
+        const card = document.createElement("div");
+        card.className="iv-card";
+        card.style.animationDelay=`${i*0.045}s`;
+        card.innerHTML=`
+          <div class="anime-card-img">
+            <img src="${anime.images?.jpg?.large_image_url||''}" alt="${anime.title}" loading="lazy"/>
+            ${anime.rank?`<span class="card-rank">#${anime.rank}</span>`:""}
+            <span class="card-score">★ ${score}</span>
+            <div class="card-overlay"></div>
+            ${anime.type?`<span class="card-type">${anime.type}</span>`:""}
+          </div>
+          <div class="anime-card-body">
+            <p class="anime-card-title">${anime.title}</p>
+            <div class="anime-card-tags">
+              ${genre?`<span class="anime-tag">${genre}</span>`:""}
+              ${anime.year?`<span class="anime-tag">${anime.year}</span>`:""}
+            </div>
+            ${anime.episodes?`<p class="card-eps">${anime.episodes} eps</p>`:anime.status==="Currently Airing"?`<p class="iv-card-eps iv-airing">● Airing</p>`:""}
+          </div>`;
+        card.onclick = () => openModal(anime);
+        grid.appendChild(card);
+      });
+    }
+
+    function renderPagination(pg) {
+      if(!pg) return;
+      const el = document.getElementById("pagination");
+      const total = pg.last_visible_page||page;
+      const start = Math.max(1,page-2), end = Math.min(total,page+2);
+      let html = page>1?`<button class="pg-btn" onclick="goPage(${page-1})">‹</button>`:"";
+      for(let p=start;p<=end;p++) html+=`<button class="pg-btn ${p===page?"active":""}" onclick="goPage(${p})">${p}</button>`;
+      if(pg.has_next_page) html+=`<button class="pg-btn" onclick="goPage(${page+1})">›</button>`;
+      html+=`<span class="pg-info">Page ${page}</span>`;
+      el.innerHTML=html;
+    }
+
+    function goPage(p) { page=p; fetchAnime(); window.scrollTo({top:0,behavior:"smooth"}); }
+
+    function openModal(anime) {
+      document.getElementById("mImg").src = anime.images?.jpg?.large_image_url||"";
+      document.getElementById("mTitle").textContent = anime.title;
+      document.getElementById("mTitleEn").textContent = (anime.title_english&&anime.title_english!==anime.title)?anime.title_english:"";
+      const trailer = document.getElementById("mTrailer");
+      if(anime.trailer?.url){ trailer.href=anime.trailer.url; trailer.style.display="block"; } else { trailer.style.display="none"; }
+      const score = anime.score?anime.score.toFixed(1):"N/A";
+      document.getElementById("mStats").innerHTML = [{val:score,lbl:"Score"},{val:anime.rank?`#${anime.rank}`:"—",lbl:"Rank"},{val:formatNum(anime.members),lbl:"Members"},{val:anime.episodes??"?",lbl:"Episodes"}].map(s=>`<div class="stat"><span class="stat-val">${s.val}</span><span class="stat-lbl">${s.lbl}</span></div>`).join("");
+      document.getElementById("mGenres").innerHTML = (anime.genres||[]).map(g=>`<span class="genre-pill">${g.name}</span>`).join("");
+      const studios = anime.studios?.map(s=>s.name).join(", ")||"—";
+      document.getElementById("mMeta").innerHTML = [["Type",anime.type],["Status",anime.status],["Aired",anime.aired?.string],["Studio",studios],["Rating",anime.rating],["Source",anime.source]].filter(([,v])=>v).map(([k,v])=>`<div class="meta-row"><span class="meta-key">${k}</span><span class="meta-val">${v}</span></div>`).join("");
+      document.getElementById("mSynopsis").textContent = anime.synopsis||"No synopsis available.";
+      document.getElementById("modal").style.display="flex";
+      document.body.style.overflow="hidden";
+    }
+
+    function closeModal() { document.getElementById("modal").style.display="none"; document.body.style.overflow=""; }
+    document.getElementById("modal").addEventListener("click", e => { if(e.target===document.getElementById("modal")) closeModal(); });
+    document.addEventListener("keydown", e => { if(e.key==="Escape") closeModal(); });
+
+    fetchAnime();
+  </script>
+
+  <script>
+    (function() {
+      const saved = localStorage.getItem('iv_theme');
+      if(saved === 'light') document.body.classList.add('light');
+    })();
+  </script>
+  <script>
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle('light');
+      localStorage.setItem('iv_theme', isLight ? 'light' : 'dark');
+      document.querySelectorAll('.theme-toggle').forEach(btn => {
+        btn.textContent = isLight ? '🌙' : '☀️';
+      });
+    }
+    // Set correct icon on load
+    window.addEventListener('DOMContentLoaded', () => {
+      const isLight = document.body.classList.contains('light');
+      document.querySelectorAll('.theme-toggle').forEach(btn => {
+        btn.textContent = isLight ? '🌙' : '☀️';
+      });
+    });
+  </script>
+
+</body>
+</html>

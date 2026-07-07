@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Introverse — Music</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+  <!-- ORBS -->
+  <div class="music-orb music-orb-1" id="orb1"></div>
+  <div class="music-orb music-orb-2"></div>
+
+  <!-- NAV -->
+    <nav class="nav">
+    <a href="index.html" class="nav-logo">INTRO<span>VERSE</span></a>
+    <ul class="nav-links">
+      <li><a href="anime.html" class="nav-link ">Anime</a></li>
+      <li><a href="music.html" class="nav-link active">Music</a></li>
+      <li><a href="chat.html" class="nav-link ">Chatbot</a></li>
+      <li><a href="quotes.html" class="nav-link ">Quotes</a></li>
+      <li><a href="journal.html" class="nav-link ">Journal</a></li>
+    </ul>
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <a href="login.html" id="nav-login-btn" style="display:none;font-size:0.78rem;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color 0.2s;">Login</a>
+      <span id="nav-user-email" style="display:none;font-size:0.72rem;color:var(--muted);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+      <button id="nav-logout-btn" onclick="navLogout()" style="display:none;padding:0.35rem 0.85rem;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;transition:all 0.2s;">Sign out</button>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">☀️</button>
+    </div>
+  </nav>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+    const _fbc = { apiKey:"AIzaSyCyHnSYF3D1UXM3Mz5Jb_u7tgmH0vShai0", authDomain:"introverse-5a0ea.firebaseapp.com", projectId:"introverse-5a0ea", storageBucket:"introverse-5a0ea.firebasestorage.app", messagingSenderId:"840538042176", appId:"1:840538042176:web:a70901a7e81888d9b094a5" };
+    const _fapp = initializeApp(_fbc);
+    const _fauth = getAuth(_fapp);
+    onAuthStateChanged(_fauth, (user) => {
+      if (user) {
+        document.getElementById("nav-user-email").style.display = "block";
+        document.getElementById("nav-user-email").textContent = user.email;
+        document.getElementById("nav-logout-btn").style.display = "block";
+        document.getElementById("nav-login-btn").style.display = "none";
+      } else {
+        document.getElementById("nav-login-btn").style.display = "block";
+        document.getElementById("nav-logout-btn").style.display = "none";
+        document.getElementById("nav-user-email").style.display = "none";
+      }
+    });
+    window.navLogout = async function() { await signOut(_fauth); window.location.href = "login.html"; };
+  </script>
+
+  <div class="music-layout">
+    <!-- PLAYER -->
+    <div class="player-side">
+      <div>
+        <span class="np-label">● Now Playing</span>
+        <h1 class="np-title" id="npTitle"></h1>
+        <p class="np-artist" id="npArtist"></p>
+        <p class="np-desc" id="npDesc"></p>
+      </div>
+      <div class="embed-wrap" id="embedWrap">
+        <iframe id="ytEmbed" class="yt-iframe" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        <div id="ytFallback" style="display:none;position:absolute;inset:0;background:#1a1a26;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;border-radius:16px;">
+          <div style="font-size:3rem;">🎵</div>
+          <p style="color:#f0f0f8;font-size:1rem;font-weight:500;" id="fallbackTitle"></p>
+          <a id="ytLink" href="#" target="_blank" style="padding:0.75rem 1.75rem;background:#c084fc;color:#fff;border-radius:10px;text-decoration:none;font-size:0.9rem;font-weight:600;">▶ Open on YouTube</a>
+          <p style="color:#7a7a9a;font-size:0.75rem;">Use Live Server to embed directly</p>
+        </div>
+      </div>
+      <div class="vibe-tags">
+        <span class="vibe-tag">#lofi</span>
+        <span class="vibe-tag">#chill</span>
+        <span class="vibe-tag">#focus</span>
+        <span class="vibe-tag">#cozy</span>
+        <span class="vibe-tag">#night</span>
+      </div>
+    </div>
+
+    <!-- PLAYLIST -->
+    <div class="playlist-side">
+      <div class="playlist-header">
+        <span class="pl-label">Stations</span>
+        <span class="pl-count">6 vibes</span>
+      </div>
+      <div class="playlist" id="playlist"></div>
+    </div>
+  </div>
+
+  <script>
+    const PLAYLISTS = [
+      { id:"jfKfPfyJRdk", title:"lofi hip hop radio", artist:"Lofi Girl", desc:"beats to relax/study to", tag:"24/7 Live", color:"#c084fc" },
+      { id:"4xDzrJKXOOY", title:"synthwave radio", artist:"Lofi Girl", desc:"beats to chill/drive to", tag:"24/7 Live", color:"#e63946" },
+      { id:"Na0w3Mz46GA", title:"Cozy Coffee Shop", artist:"Ambient Worlds", desc:"Peaceful café ambience", tag:"Ambience", color:"#f59e0b" },
+      { id:"5qap5aO4i9A", title:"lofi hip hop radio 2", artist:"Lofi Girl", desc:"beats to study/relax to", tag:"Chillhop", color:"#34d399" },
+      { id:"7NOSDKb0HlU", title:"Night City Lofi", artist:"Lofi Records", desc:"Urban nights & chill beats", tag:"Night Vibes", color:"#60a5fa" },
+      { id:"HuFYqnbVbzY", title:"Anime Lofi Mix", artist:"Wafuu Lofi", desc:"Japanese aesthetic beats", tag:"Anime", color:"#f472b6" },
+    ];
+
+    let activeId = PLAYLISTS[0].id;
+    let playing = false;
+
+    function selectTrack(pl) {
+      activeId = pl.id;
+      playing = true;
+      document.getElementById("npTitle").textContent = pl.title;
+      document.getElementById("npTitle").style.color = pl.color;
+      document.getElementById("npArtist").textContent = pl.artist;
+      document.getElementById("npDesc").textContent = pl.desc;
+      document.getElementById("orb1").style.background = pl.color;
+      updateEmbed(pl, true);
+      renderPlaylist();
+    }
+
+    function renderPlaylist() {
+      const el = document.getElementById("playlist");
+      el.innerHTML = "";
+      PLAYLISTS.forEach(pl => {
+        const isActive = pl.id === activeId;
+        const item = document.createElement("div");
+        item.className = "pl-item" + (isActive?" active":"");
+        item.style.borderLeftColor = isActive ? pl.color : "transparent";
+        item.innerHTML = `
+          <div class="pl-thumb">
+            <img src="https://img.youtube.com/vi/${pl.id}/mqdefault.jpg" alt="${pl.title}"/>
+            ${isActive ? `<div class="pl-playing"><span></span><span></span><span></span></div>` : ""}
+          </div>
+          <div class="pl-info">
+            <p class="pl-title">${pl.title}</p>
+            <p class="pl-artist">${pl.artist}</p>
+          </div>
+          <span class="pl-tag" style="color:${pl.color};background:${pl.color}18;border-color:${pl.color}40">${pl.tag}</span>
+        `;
+        item.onclick = () => selectTrack(pl);
+        el.appendChild(item);
+      });
+    }
+
+    // Detect if running on file:// protocol
+    const isLocal = window.location.protocol === "file:";
+
+    function updateEmbed(pl, autoplay) {
+      const embed = document.getElementById("ytEmbed");
+      const fallback = document.getElementById("ytFallback");
+      if(isLocal) {
+        embed.style.display = "none";
+        fallback.style.display = "flex";
+        document.getElementById("fallbackTitle").textContent = pl.title;
+        document.getElementById("ytLink").href = `https://www.youtube.com/watch?v=${pl.id}`;
+      } else {
+        embed.style.display = "block";
+        fallback.style.display = "none";
+        embed.src = `https://www.youtube.com/embed/${pl.id}?autoplay=${autoplay?1:0}&rel=0`;
+      }
+    }
+
+    // Init
+    const first = PLAYLISTS[0];
+    document.getElementById("npTitle").textContent = first.title;
+    document.getElementById("npTitle").style.color = first.color;
+    document.getElementById("npArtist").textContent = first.artist;
+    document.getElementById("npDesc").textContent = first.desc;
+    document.getElementById("orb1").style.background = first.color;
+    updateEmbed(first, false);
+    renderPlaylist();
+  </script>
+
+  <script>
+    (function() {
+      const saved = localStorage.getItem('iv_theme');
+      if(saved === 'light') document.body.classList.add('light');
+    })();
+  </script>
+  <script>
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle('light');
+      localStorage.setItem('iv_theme', isLight ? 'light' : 'dark');
+      document.querySelectorAll('.theme-toggle').forEach(btn => {
+        btn.textContent = isLight ? '🌙' : '☀️';
+      });
+    }
+    // Set correct icon on load
+    window.addEventListener('DOMContentLoaded', () => {
+      const isLight = document.body.classList.contains('light');
+      document.querySelectorAll('.theme-toggle').forEach(btn => {
+        btn.textContent = isLight ? '🌙' : '☀️';
+      });
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Introverse — Home</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <div class="page">
+
+    <!-- ORBS -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <!-- HERO -->
+    <section class="home-hero">
+      <div class="home-hero-inner">
+        <div class="home-badge">🌙 Your Comfort Space</div>
+        <h1 class="home-title">INTRO<span>VERSE</span></h1>
+        <p class="home-subtitle">
+          A quiet corner of the internet crafted for introverts —<br/>
+          anime, AI companions, and daily wisdom, all in one place.
+        </p>
+        <div class="home-hero-btns">
+          <a href="anime.html" class="btn-home-primary">Explore Anime</a>
+          <a href="chat.html" class="btn-home-ghost">Talk to Hana</a>
+        </div>
+      </div>
+
+      <div class="floating-cards">
+        <div class="float-card fc-1">🎌 Anime</div>
+        <div class="float-card fc-2">🌸 Chat</div>
+        <div class="float-card fc-3">✨ Quotes</div>
+        <div class="float-card fc-4">📓 Journal</div>
+      </div>
+    </section>
+
+    <!-- DIVIDER -->
+    <div class="section-divider"><span>EXPLORE INTROVERSE</span></div>
+
+    <!-- CARDS -->
+    <section class="cards-section">
+      <div class="cards-grid" id="cards-grid"></div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="home-footer">
+      <p class="footer-logo">INTRO<span>VERSE</span></p>
+      <p class="footer-text">Made with 🌙 for introverts everywhere</p>
+    </footer>
+  </div>
+
+  <script>
+    const SECTIONS = [
+      { href: "anime.html", emoji: "🎌", title: "Anime", desc: "Explore top-rated series, hidden gems & seasonal hits", accent: "#e63946", tag: "Jikan API" },
+      { href: "chat.html", emoji: "🌸", title: "Chatbot", desc: "Talk to Hana — your cozy AI companion, always listening", accent: "#c084fc", tag: "Gemini AI" },
+      { href: "quotes.html", emoji: "✨", title: "Quotes", desc: "Daily wisdom to inspire, comfort and move your soul", accent: "#f59e0b", tag: "70+ Quotes" },
+      { href: "music.html", emoji: "🎧", title: "Music", desc: "Curated lo-fi & ambient sounds for deep focus", accent: "#34d399", tag: "Lo-fi Vibes" },
+      { href: "journal.html", emoji: "📓", title: "Journal", desc: "Write your thoughts — a private space just for you", accent: "#c084fc", tag: "Private" },
+    ];
+
+    const grid = document.getElementById("cards-grid");
+
+    SECTIONS.forEach((s, i) => {
+      const card = document.createElement("a");
+      card.href = s.href;
+      card.className = "home-card";
+      card.style.animationDelay = `${i * 0.1}s`;
+      card.innerHTML = `
+        <div class="card-top">
+          <span class="card-emoji">${s.emoji}</span>
+          <span class="card-tag" style="color:${s.accent};border-color:${s.accent}40;background:${s.accent}15">${s.tag}</span>
+        </div>
+        <h2 class="card-title">${s.title}</h2>
+        <p class="card-desc">${s.desc}</p>
+        <div class="card-arrow" style="color:${s.accent}">Explore →</div>
+        <div class="card-glow" style="background:${s.accent}"></div>
+      `;
+      grid.appendChild(card);
+    });
+  </script>
+
+  <script>
+    (function() {
+      const saved = localStorage.getItem('iv_theme');
+      if(saved === 'light') document.body.classList.add('light');
+    })();
+  </script>
+  <script>
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle('light');
+      localStorage.setItem('iv_theme', isLight ? 'light' : 'dark');
+      document.querySelectorAll('.theme-toggle').forEach(btn => {
+        btn.textContent = isLight ? '🌙' : '☀️';
+      });
+    }
+    // Set correct icon on load
+    window.addEventListener('DOMContentLoaded', () => {
+      const isLight = document.body.classList.contains('light');
+      document.querySelectorAll('.theme-toggle').forEach(btn => {
+        btn.textContent = isLight ? '🌙' : '☀️';
+      });
+    });
+  </script>
+
+</body>
+</html>
