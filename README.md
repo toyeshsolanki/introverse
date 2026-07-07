@@ -1,49 +1,49 @@
-# 🌙 Introverse
+🌙 Introverse
 
-A quiet corner of the internet crafted for introverts — anime discovery, an AI companion, daily quotes, lo-fi music, and a private journal, all in one place.
+An introvert's haven in the digital realm: discover anime, chat with an AI, savor daily quotations, enjoy soothing lo-fi background music, and have a private notebook.
 
-## Features
-- 🎌 **Anime** — Browse top-ranked, airing, and popular anime (Jikan API)
-- 🌸 **Chatbot** — Talk to Hana, a cozy AI companion (Gemini API)
-- ✨ **Quotes** — Daily wisdom across multiple categories
-- 🎧 **Music** — Curated lo-fi & ambient YouTube stations
-- 📓 **Journal** — Private journaling with Firebase Auth
+ Features
+Anime: Top ranked, airing and popular anime (Jikan API)
+- 🌸 Chatbot — Chat with Hana, a cute AI friend (Gemini API)
+- ✨Quotes — Daily wisdom on various topics
+Music: curated lo-fi & ambient YouTube stations (Music)
+Private journaling where user logs data with Firebase Auth
 
-## Tech Stack
+ Tech Stack
 - HTML, CSS, vanilla JavaScript
 - [Firebase Authentication](https://firebase.google.com/docs/auth) (Email/Password)
-- [Google Gemini API](https://ai.google.dev/) for the chatbot
-- [Jikan API](https://jikan.moe/) for anime data
+Google Gemini API for the chatbot
+Anime data provided by the [Jikan API](https://jikan.moe/)
 
-## Setup
+ Setup
 
-### 1. Firebase
-This project uses Firebase Auth for login/register (used in `login.html`, `journal.html`, and the nav bar auth state on every page). The Firebase client config included in this repo is safe to expose publicly (it's a client identifier, not a secret) — see [Firebase's docs](https://firebase.google.com/docs/projects/api-keys) for more.
+ 1. Firebase
+This project utilizes Firebase Auth for logging in and out of the app (for login/register use in login.html, journal.html and the nav bar auth state for all pages). The Firebase client config provided in this repo is not a secret, it's a client identifier, see [Firebase's docs](https://firebase.google.com/docs/projects/api-keys) for more.
 
-If you want to use your **own** Firebase project instead:
-1. Create a project at [Firebase Console](https://console.firebase.google.com/)
-2. Enable **Authentication → Email/Password**
-3. Replace the `firebaseConfig` / `_fbc` object in each HTML file with your own project's config
+If you wish to choose your own Firebase project:
+2. At [Firebase Console](https://console.firebase.google.com/), create a project.
+2. Enable Authentication → Email/Password
+4. Change the firebaseConfig / _fbc object to your own project's config in each HTML file
 
-⚠️ Make sure your **Firestore/Storage security rules** are properly restricted (not left as public test-mode rules).
+Be sure that the security rules for your Firestore/Storage data are appropriately restricted — not left alone in the "public test-mode" rules.
 
-### 2. Gemini API Key (required)
-The chatbot in `chat.html` needs a Gemini API key:
-1. Get a free key at [Google AI Studio](https://aistudio.google.com/apikey)
-2. Open `chat.html` and replace `YOUR_GEMINI_API_KEY_HERE` with your key
+ 2. Gemini API Key (required)
+The chatbot located in the file `chat.html` requires a Gemini API key:
+2. Sign up for a FREE key at [Google AI Studio](https://aistudio.google.com/apikey)
+3. View the chat.html file, and change YOUR_GEMINI_API_KEY_HERE to your key
 
-⚠️ **Note:** This key is used directly in client-side JavaScript, which means anyone viewing the page source can see it once you add it. For a public/production deployment, it's recommended to proxy Gemini requests through a small backend/serverless function so your key stays private and you can add usage limits. For personal/local use, adding it directly is fine.
+⚠️ Note: Once you add this key it goes into the page source, so anyone who views that source will be able to see it in the client side JavaScript. In case of a public/production deployment, it's recommended to proxy to Gemini through a small backend/serverless function, to keep your key private and to add usage limits. If it is for personal/local use only then it is OK to add it directly.
 
-## Running Locally
-Just open `index.html` in a browser, or serve the folder with any static server (e.g. VS Code Live Server) for full YouTube embed support on the Music page.
+ Running Locally
+Simply navigate to index.html in a browser to get full YouTube embed support for the Music page; or use any static server (such as VS Code Live Server) to serve the folder.
 
-## Pages
+ Pages
 | File | Description |
 |---|---|
 | `index.html` | Home page |
 | `anime.html` | Anime browser |
 | `chat.html` | AI chatbot |
 | `quotes.html` | Daily quotes |
-| `music.html` | Lo-fi music player |
-| `journal.html` | Private journal (requires login) |
+Player for lo-fi music.Lo-fi music player: music.html.
+Private journal (requires login) | `journal.html` |
 | `login.html` | Login / Register |
